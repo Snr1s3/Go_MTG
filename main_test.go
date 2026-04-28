@@ -71,6 +71,12 @@ func TestParseRow_WhitespaceQuantity(t *testing.T) {
 
 func TestCallAPI_200(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Accept"); got != "application/json" {
+			t.Fatalf("want Accept %q, got %q", "application/json", got)
+		}
+		if got := r.Header.Get("User-Agent"); got == "" {
+			t.Fatal("expected User-Agent header to be set")
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"mana_cost":"{R}","cmc":1}`)) //nolint:errcheck
 	}))
