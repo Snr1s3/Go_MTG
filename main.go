@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"flag"
@@ -10,10 +11,15 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type Card struct {
@@ -50,6 +56,10 @@ func callAPI(client *http.Client, baseURL, id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Scryfall requires both Accept and User-Agent headers on all requests.
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "go-mtg/1.0 (+https://github.com/alba/go_mtg)")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -273,12 +283,61 @@ func writeCardsCSV(cards []Card, outputFile string) error {
 	return nil
 }
 
+func buildS3ObjectKey(prefix, outputFile string, now time.Time) string {
+	base := filepath.Base(outputFile)
+	ext := filepath.Ext(base)
+	name := strings.TrimSuffix(base, ext)
+	if name == "" {
+		name = "output"
+	}
+
+	key := fmt.Sprintf("%s_%s.csv", name, now.Format("20060102_150405"))
+	prefix = strings.Trim(prefix, "/")
+	if prefix == "" {
+		return key
+	}
+	return prefix + "/" + key
+}
+
+func uploadFileToS3(ctx context.Context, localPath, bucket, key, region string) error {
+	loadOpts := []func(*config.LoadOptions) error{}
+	if strings.TrimSpace(region) != "" {
+		loadOpts = append(loadOpts, config.WithRegion(region))
+	}
+
+	cfg, err := config.LoadDefaultConfig(ctx, loadOpts...)
+	if err != nil {
+		return fmt.Errorf("load aws config: %w", err)
+	}
+
+	f, err := os.Open(localPath)
+	if err != nil {
+		return fmt.Errorf("open output file: %w", err)
+	}
+	defer f.Close()
+
+	client := s3.NewFromConfig(cfg)
+	_, err = client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(key),
+		Body:        f,
+		ContentType: aws.String("text/csv"),
+	})
+	if err != nil {
+		return fmt.Errorf("put object: %w", err)
+	}
+	return nil
+}
+
 func main() {
-	inputFile := flag.String("input", "Cartes3.csv", "input CSV file")
+	inputFile := flag.String("input", "Cartes.csv", "input CSV file")
 	outputFile := flag.String("output", "output.csv", "output CSV file")
-	apiBaseURL := flag.String("api", "http://localhost:8080", "Scryfall API base URL")
+	apiBaseURL := flag.String("api", "https://api.scryfall.com", "Scryfall API base URL")
 	timeout := flag.Duration("timeout", 10*time.Second, "HTTP request timeout")
 	workers := flag.Int("workers", 5, "number of concurrent API workers")
+	s3Bucket := flag.String("s3-bucket", "", "S3 bucket name (optional)")
+	s3Prefix := flag.String("s3-prefix", "", "S3 key prefix (optional)")
+	s3Region := flag.String("s3-region", "", "AWS region for S3 upload (optional; falls back to AWS config)")
 	flag.Parse()
 
 	slog.Info("starting", "input", *inputFile, "output", *outputFile, "api", *apiBaseURL, "workers", *workers)
@@ -301,6 +360,15 @@ func main() {
 	if err := writeCardsCSV(cards, *outputFile); err != nil {
 		slog.Error("write error", "error", err)
 		os.Exit(1)
+	}
+
+	if strings.TrimSpace(*s3Bucket) != "" {
+		objectKey := buildS3ObjectKey(*s3Prefix, *outputFile, time.Now())
+		if err := uploadFileToS3(context.Background(), *outputFile, *s3Bucket, objectKey, *s3Region); err != nil {
+			slog.Error("s3 upload error", "bucket", *s3Bucket, "key", objectKey, "error", err)
+			os.Exit(1)
+		}
+		slog.Info("s3 upload done", "bucket", *s3Bucket, "key", objectKey)
 	}
 
 	slog.Info("done", "cards", len(cards), "output", *outputFile)
