@@ -335,8 +335,8 @@ func main() {
 	apiBaseURL := flag.String("api", "https://api.scryfall.com", "Scryfall API base URL")
 	timeout := flag.Duration("timeout", 10*time.Second, "HTTP request timeout")
 	workers := flag.Int("workers", 5, "number of concurrent API workers")
-	s3Bucket := flag.String("s3-bucket", "", "S3 bucket name (optional)")
-	s3Prefix := flag.String("s3-prefix", "", "S3 key prefix (optional)")
+	s3Bucket := flag.String("s3-bucket", "go-mtg-card-bucket", "S3 bucket name (optional)")
+	s3Prefix := flag.String("s3-prefix", "mtg/exports", "S3 key prefix (optional)")
 	s3Region := flag.String("s3-region", "", "AWS region for S3 upload (optional; falls back to AWS config)")
 	flag.Parse()
 
