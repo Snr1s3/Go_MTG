@@ -130,6 +130,7 @@ def get_card(card_id: str):
             for line in f:
                 card = json.loads(line)
                 if card.get('id') == card_id or card.get('name') == card_id:
+                    print(card)
                     return card
         return {"ERROR": "CARD NOT FOUND"}
     except Exception as e:
