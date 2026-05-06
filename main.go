@@ -181,6 +181,7 @@ func readCardsCSV(client *http.Client, baseURL, inputFile string, workers int) (
 
 			entry.once.Do(func() {
 				body, err := callAPI(client, baseURL, scryfallID)
+				fmt.Println(body)
 				if err != nil {
 					entry.err = err
 					return
@@ -277,7 +278,7 @@ func writeCardsCSV(cards []Card, outputFile string) error {
 }
 
 func main() {
-	inputFile := flag.String("input", "Cartes/Cartes.csv", "input CSV file")
+	inputFile := flag.String("input", "Cartes/cartes2.csv", "input CSV file")
 	outputFile := flag.String("output", "Cartes/output.csv", "output CSV file")
 	apiBaseURL := flag.String("api", "http://localhost:8000", "Scryfall API base URL")
 	timeout := flag.Duration("timeout", 10*time.Second, "HTTP request timeout")
