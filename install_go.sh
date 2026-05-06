@@ -30,8 +30,8 @@ install_prereqs() {
 
 install_prereqs
 
-# Install Python packages
-pip3 install --upgrade pip
+# Install Python packages (skip pip upgrade on RPM systems)
+pip3 install --no-upgrade pip 2>/dev/null || true
 pip3 install fastapi uvicorn[standard]
 
 # Install Go
