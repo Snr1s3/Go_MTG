@@ -10,26 +10,6 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-install_prereqs() {
-  if command -v dnf >/dev/null 2>&1; then
-    dnf install -y wget git
-  elif command -v yum >/dev/null 2>&1; then
-    yum install -y wget git
-  elif command -v apt-get >/dev/null 2>&1; then
-    apt-get update
-    apt-get install -y wget git
-  elif command -v zypper >/dev/null 2>&1; then
-    zypper --non-interactive install wget git
-  elif command -v apk >/dev/null 2>&1; then
-    apk add --no-cache wget git
-  else
-    echo "No supported package manager found (dnf/yum/apt/zypper/apk)."
-    exit 1
-  fi
-}
-
-install_prereqs
-
 wget -O "${GO_TARBALL}" "${GO_URL}"
 rm -rf /usr/local/go
 tar -C /usr/local -xzf "${GO_TARBALL}"
@@ -42,7 +22,5 @@ export PATH=$PATH:/usr/local/go/bin
 EOF
 chmod 644 /etc/profile.d/go.sh
 
-echo "Installed: wget, git, and Go ${GO_VERSION}"
+echo "Installed Go ${GO_VERSION}"
 go version
-git --version
-wget --version | head -n 1
