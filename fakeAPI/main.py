@@ -117,7 +117,7 @@ FAKE_CARD = {
 }
 
 
-data_file = '/home/ec2-user/Go_MTG/fakeAPI/data/all-cards-20260506092337.json'
+data_file = '/home/ec2-user/Go_MTG/data/all-cards-20260506092337.json'
 
 @app.get("/health")
 def health():
