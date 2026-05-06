@@ -97,14 +97,14 @@ func countLines(path string) (int, error) {
 // parseRow validates a CSV row and returns name, scryfallID, and quantity.
 // Expects at least 9 columns: name at index 0, quantity at index 6, scryfallID at index 8.
 func parseRow(fields []string) (name, scryfallID string, quantity int, err error) {
-	if len(fields) <= 8 {
-		return "", "", 0, fmt.Errorf("row has %d columns, need at least 9", len(fields))
+	if len(fields) <= 7 {
+		return "", "", 0, fmt.Errorf("row has %d columns, need at least 8", len(fields))
 	}
 	quantity, err = strconv.Atoi(strings.TrimSpace(fields[6]))
 	if err != nil {
 		return "", "", 0, fmt.Errorf("invalid quantity %q: %w", fields[6], err)
 	}
-	return fields[0], fields[8], quantity, nil
+	return fields[0], fields[7], quantity, nil // scryfallID is index 7
 }
 
 type cardResult struct {
@@ -129,6 +129,7 @@ func readCardsCSV(client *http.Client, baseURL, inputFile string, workers int) (
 	defer f.Close()
 
 	reader := csv.NewReader(f)
+	reader.FieldsPerRecord = -1 // allow variable column count
 	if _, err := reader.Read(); err != nil {
 		if err == io.EOF {
 			return nil, nil
