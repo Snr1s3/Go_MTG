@@ -279,7 +279,7 @@ func writeCardsCSV(cards []Card, outputFile string) error {
 func main() {
 	inputFile := flag.String("input", "Cartes/Cartes.csv", "input CSV file")
 	outputFile := flag.String("output", "Cartes/output.csv", "output CSV file")
-	apiBaseURL := flag.String("api", "https://api.scryfall.com", "Scryfall API base URL")
+	apiBaseURL := flag.String("api", "http://localhost:8000", "Scryfall API base URL")
 	timeout := flag.Duration("timeout", 10*time.Second, "HTTP request timeout")
 	workers := flag.Int("workers", 5, "number of concurrent API workers")
 	flag.Parse()
