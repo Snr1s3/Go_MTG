@@ -128,9 +128,12 @@ def get_card(card_id: str):
     try:
         with open(data_file, 'r') as f:
             for line in f:
+                line = line.strip()
+                if line in ('[', ']', ''):
+                    continue
+                line = line.rstrip(',')
                 card = json.loads(line)
                 if card.get('id') == card_id or card.get('name') == card_id:
-                    print(f"Carta: {card}")
                     return card
         return {"ERROR": "CARD NOT FOUND"}
     except Exception as e:
