@@ -35,8 +35,6 @@ with open(data_file, 'r') as f:
                 
         except Exception:
             continue
-print(f"Index id built: {len(index_id)} cards")
-print(f"Index name built: {len(index_name)} cards")
 
 @app.get("/health")
 def health():
