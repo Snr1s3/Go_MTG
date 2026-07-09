@@ -1,12 +1,10 @@
-#!/bin/bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
-GO_VERSION="1.26.2"
-GO_TARBALL="go${GO_VERSION}.linux-amd64.tar.gz"
-GO_URL="https://go.dev/dl/${GO_TARBALL}"
-BULK_DATA="wget https://data.scryfall.io/all-cards/all-cards-20260506092337.json"
-if [[ "${EUID}" -ne 0 ]]; then
-  echo "Run with sudo: sudo ./install_go.sh"
+BULK_DATA="https://data.scryfall.io/all-cards/all-cards-20260506092337.json"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Run with sudo: sudo ./install_python_and_bulk.sh"
   exit 1
 fi
 
@@ -30,29 +28,15 @@ install_prereqs() {
 
 install_prereqs
 
-# Install Python packages (skip pip upgrade on RPM systems)
+# Install Python packages used by the API service.
 pip3 install --no-upgrade pip 2>/dev/null || true
 pip3 install fastapi uvicorn[standard]
 
-# Install Go
-wget -O "${GO_TARBALL}" "${GO_URL}"
-rm -rf /usr/local/go
-tar -C /usr/local -xzf "${GO_TARBALL}"
-
-ln -sf /usr/local/go/bin/go /usr/local/bin/go
-ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
-
-cat > /etc/profile.d/go.sh <<'EOF'
-export PATH=$PATH:/usr/local/go/bin
-EOF
-chmod 644 /etc/profile.d/go.sh
-
-echo "Installed: wget, git, Python3, FastAPI, Uvicorn, and Go ${GO_VERSION}"
-go version
+echo "Installed Python dependencies"
 python3 --version
 pip3 show fastapi | grep Version
 
 echo "Downloading bulk data"
-mkdir data
+mkdir -p data
 cd data
-wget $BULK_DATA
+wget "${BULK_DATA}"
