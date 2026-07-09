@@ -6,7 +6,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPO_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd)"
 API_DIR="${REPO_ROOT}/API"
 VENV_DIR="${API_DIR}/.venv"
-DATA_DIR="${REPO_ROOT}/Go/Data"
+DATA_DIR="${REPO_ROOT}/API/Data"
 
 SUDO=""
 if [ "$(id -u)" -ne 0 ]; then
@@ -61,6 +61,7 @@ echo "Installed Python dependencies"
 "${VENV_DIR}/bin/pip" show fastapi | grep Version || true
 
 echo "Downloading bulk data"
-wget -O "${DATA_DIR}/all-cards.json" "${BULK_DATA}"
+wget -O "${DATA_DIR}/all-cards.gz" "${BULK_DATA}"
+zcat all-cards.gz > all-cards.jsonl
 echo "Virtual environment: ${VENV_DIR}"
 echo "Activate with: . ${VENV_DIR}/bin/activate"
