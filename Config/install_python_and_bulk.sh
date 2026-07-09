@@ -2,24 +2,39 @@
 set -eu
 
 BULK_DATA="https://data.scryfall.io/all-cards/all-cards-20260506092337.json"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd)"
+API_DIR="${REPO_ROOT}/API"
+VENV_DIR="${API_DIR}/.venv"
+DATA_DIR="${REPO_ROOT}/Go/Data"
 
+SUDO=""
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Run with sudo: sudo ./install_python_and_bulk.sh"
-  exit 1
+  if command -v sudo >/dev/null 2>&1; then
+    SUDO="sudo"
+  fi
 fi
+
+run_pkg_cmd() {
+  if [ -n "${SUDO}" ]; then
+    ${SUDO} "$@"
+  else
+    "$@"
+  fi
+}
 
 install_prereqs() {
   if command -v dnf >/dev/null 2>&1; then
-    dnf install -y wget git python3 python3-pip
+    run_pkg_cmd dnf install -y wget git python3 python3-pip
   elif command -v yum >/dev/null 2>&1; then
-    yum install -y wget git python3 python3-pip
+    run_pkg_cmd yum install -y wget git python3 python3-pip
   elif command -v apt-get >/dev/null 2>&1; then
-    apt-get update
-    apt-get install -y wget git python3 python3-pip
+    run_pkg_cmd apt-get update
+    run_pkg_cmd apt-get install -y wget git python3 python3-pip python3-venv
   elif command -v zypper >/dev/null 2>&1; then
-    zypper --non-interactive install wget git python3 python3-pip
+    run_pkg_cmd zypper --non-interactive install wget git python3 python3-pip
   elif command -v apk >/dev/null 2>&1; then
-    apk add --no-cache wget git python3 py3-pip
+    run_pkg_cmd apk add --no-cache wget git python3 py3-pip
   else
     echo "No supported package manager found (dnf/yum/apt/zypper/apk)."
     exit 1
@@ -28,15 +43,24 @@ install_prereqs() {
 
 install_prereqs
 
-# Install Python packages used by the API service.
-pip3 install --no-upgrade pip 2>/dev/null || true
-pip3 install fastapi uvicorn[standard]
+# Install Python packages used by the API service in a project virtualenv.
+mkdir -p "${API_DIR}" "${DATA_DIR}"
+if [ ! -d "${VENV_DIR}" ]; then
+  if ! python3 -m venv "${VENV_DIR}"; then
+    echo "Could not create virtual environment at ${VENV_DIR}."
+    echo "On Debian/Ubuntu, install python3-venv and rerun."
+    exit 1
+  fi
+fi
+
+"${VENV_DIR}/bin/python" -m pip install --upgrade pip
+"${VENV_DIR}/bin/pip" install fastapi "uvicorn[standard]"
 
 echo "Installed Python dependencies"
-python3 --version
-pip3 show fastapi | grep Version
+"${VENV_DIR}/bin/python" --version
+"${VENV_DIR}/bin/pip" show fastapi | grep Version || true
 
 echo "Downloading bulk data"
-mkdir -p data
-cd data
-wget "${BULK_DATA}"
+wget -O "${DATA_DIR}/all-cards.json" "${BULK_DATA}"
+echo "Virtual environment: ${VENV_DIR}"
+echo "Activate with: . ${VENV_DIR}/bin/activate"
