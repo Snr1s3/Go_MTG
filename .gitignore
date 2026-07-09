@@ -57,3 +57,4 @@ dist/
 
 # Jupyter
 .ipynb_checkpoints/
+/mtg/src/main/resources/*.jsonl.gz
