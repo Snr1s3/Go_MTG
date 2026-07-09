@@ -53,7 +53,6 @@ echo "Installed Python dependencies"
 "${VENV_DIR}/bin/pip" show fastapi | grep Version || true
 
 echo "Downloading bulk data"
-wget -O "${DATA_DIR}/all-cards.gz" "${BULK_DATA}"
-gunzip "${DATA_DIR}/all-cards.gz" > "${DATA_DIR}/all-cards.jsonl"
+wget -O "${DATA_DIR}/ "${BULK_DATA}"
 echo "Virtual environment: ${VENV_DIR}"
 echo "Activate with: . ${VENV_DIR}/bin/activate"
