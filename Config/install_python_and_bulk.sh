@@ -54,6 +54,6 @@ echo "Installed Python dependencies"
 
 echo "Downloading bulk data"
 wget -O "${DATA_DIR}/all-cards.gz" "${BULK_DATA}"
-zcat all-cards.gz > all-cards.jsonl
+zcat "${DATA_DIR}/all-cards.gz" > "${DATA_DIR}/all-cards.jsonl"
 echo "Virtual environment: ${VENV_DIR}"
 echo "Activate with: . ${VENV_DIR}/bin/activate"
