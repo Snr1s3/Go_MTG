@@ -26,7 +26,7 @@ run_pkg_cmd() {
 install_prereqs() {
   if command -v apt-get >/dev/null 2>&1; then
     run_pkg_cmd apt-get update
-    run_pkg_cmd apt-get install -y wget git python3 python3-pip python3-venv zcat
+    run_pkg_cmd apt-get install -y wget git python3 python3-pip python3-venv
   else
     echo "No supported package manager found (dnf/yum/apt/zypper/apk)."
     exit 1
