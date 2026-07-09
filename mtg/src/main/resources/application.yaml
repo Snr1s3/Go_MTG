@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: mtg
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+cards:
+  file-path: mtg/src/main/resources/test.jsonl
+logging:
+  level:
+    root: INFO
+    alba.alba.mtg: INFO
