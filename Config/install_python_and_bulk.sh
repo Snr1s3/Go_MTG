@@ -24,17 +24,9 @@ run_pkg_cmd() {
 }
 
 install_prereqs() {
-  if command -v dnf >/dev/null 2>&1; then
-    run_pkg_cmd dnf install -y wget git python3 python3-pip
-  elif command -v yum >/dev/null 2>&1; then
-    run_pkg_cmd yum install -y wget git python3 python3-pip
-  elif command -v apt-get >/dev/null 2>&1; then
+  if command -v apt-get >/dev/null 2>&1; then
     run_pkg_cmd apt-get update
-    run_pkg_cmd apt-get install -y wget git python3 python3-pip python3-venv
-  elif command -v zypper >/dev/null 2>&1; then
-    run_pkg_cmd zypper --non-interactive install wget git python3 python3-pip
-  elif command -v apk >/dev/null 2>&1; then
-    run_pkg_cmd apk add --no-cache wget git python3 py3-pip
+    run_pkg_cmd apt-get install -y wget git python3 python3-pip python3-venv zcat
   else
     echo "No supported package manager found (dnf/yum/apt/zypper/apk)."
     exit 1
