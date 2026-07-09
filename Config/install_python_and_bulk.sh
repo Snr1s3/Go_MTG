@@ -53,6 +53,6 @@ echo "Installed Python dependencies"
 "${VENV_DIR}/bin/pip" show fastapi | grep Version || true
 
 echo "Downloading bulk data"
-wget "${BULK_DATA}"
+wget -P "${DATA_DIR}" "${BULK_DATA}"
 echo "Virtual environment: ${VENV_DIR}"
 echo "Activate with: . ${VENV_DIR}/bin/activate"
