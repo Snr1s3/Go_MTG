@@ -30,7 +30,6 @@ public class FileReadingModel {
     private final Map<String, List<Long>> dictName = new HashMap<>();
 
     @PostConstruct
-    @SuppressWarnings("unused")
     private void init() {
         log.info("FileReadingModel init start: {}", dataFile);
 

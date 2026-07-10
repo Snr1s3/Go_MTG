@@ -36,6 +36,20 @@
             margin: 1rem 0;
         }
 
+        .lookup-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .lookup-input {
+            min-width: 280px;
+            padding: 0.45rem 0.55rem;
+            border: 1px solid #2c2c2c;
+            background: #fffdf7;
+        }
+
         .btn {
             display: inline-block;
             padding: 0.5rem 0.8rem;
@@ -64,8 +78,14 @@
 <p th:text="${message}">Thymeleaf is configured and running.</p>
 
 <div class="actions">
-    <a class="btn" href="/">Get another random card</a>
+    <a class="btn" href="/">Get random card</a>
 </div>
+
+<form class="lookup-form" aria-label="Find card by id or name" method="get" action="/allcards">
+    <label for="cardRef">Card id or name</label>
+    <input id="cardRef" class="lookup-input" name="cardRef" type="text" placeholder="Black Lotus" th:value="${cardRef}" required>
+    <button class="btn" type="submit">Search</button>
+</form>
 
 <pre th:text="${randomCardJson}">No random card loaded.</pre>
 </body>
