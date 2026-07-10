@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +70,14 @@ public class FileReadingModel {
         }
         return (end == s.length()) ? s : s.substring(0, end);
     }
+    public Map<String, Long> getAllDictId() {
+        return dictId;
+    }
+
+    public Map<String, List<Long>> getAllDictName(){
+        return dictName;
+    }
+    
     private String normalizeLine(String line) {
         return stripTrailingCommas(line.trim());
     }

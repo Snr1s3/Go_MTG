@@ -2,7 +2,10 @@ package alba.alba.mtg.controllers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,12 +22,35 @@ import jakarta.validation.constraints.Min;
 @RestController
 @Validated
 public class CardController {
-    private final FileReadingModel fr;
+    private static final String CARDS_KEY = "cards";
 
-    public CardController(FileReadingModel fr) {
+    private final FileReadingModel fr;
+    private final String cardsFilePath;
+
+    public CardController(FileReadingModel fr, @Value("${cards.file-path}") String cardsFilePath) {
         this.fr = fr;
+        this.cardsFilePath = cardsFilePath;
     }
 
+    @GetMapping("/randomcard")
+    public Map<String, Object> getRandomCard() {
+        Map<String, Long> idDict = fr.getAllDictId();
+        if (idDict.isEmpty()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "NO CARDS AVAILABLE"
+            );
+        }
+        int dictLen = idDict.size();
+        List<String> ids = new ArrayList<>(idDict.keySet());
+        int randomIndex = ThreadLocalRandom.current().nextInt(dictLen);
+        String id = ids.get(randomIndex);
+        Map<String, Object> result = getCard(id, 1, 0);
+        return Map.of(
+                "id", id,
+            CARDS_KEY, result.get(CARDS_KEY)
+        );
+    }
     @GetMapping("/cards/{card_ref}")
     public Map<String, Object> getCard(
             @PathVariable("card_ref") String cardRef,
@@ -51,9 +77,9 @@ public class CardController {
         List<Long> pageOffsets = matchedOffsets.subList(from, to);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        List<JsonNode> cards = new java.util.ArrayList<>();
+        List<Map<String, Object>> cards = new java.util.ArrayList<>();
 
-        try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile("mtg/src/main/resources/test.jsonl", "r")) {
+        try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(cardsFilePath, "r")) {
             for (Long byteOffset : pageOffsets) {
                 raf.seek(byteOffset);
                 String line = raf.readLine();
@@ -68,7 +94,8 @@ public class CardController {
                 }
                 line = (end == line.length()) ? line : line.substring(0, end);
 
-                cards.add(objectMapper.readTree(line));
+                JsonNode node = objectMapper.readTree(line);
+                cards.add(objectMapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() { }));
             }
         } catch (java.io.IOException e) {
             throw new org.springframework.web.server.ResponseStatusException(
@@ -83,7 +110,7 @@ public class CardController {
                 "limit", limit,
                 "offset", pageOffset,
                 "count", cards.size(),
-                "cards", cards
+                CARDS_KEY, cards
         );
     }
 }
