@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,8 @@ public class FileReadingModel {
     private final Map<String, List<Long>> dictName = new HashMap<>();
 
     @PostConstruct
-    void init() {
+    @SuppressWarnings("unused")
+    private void init() {
         log.info("FileReadingModel init start: {}", dataFile);
 
         Path path = Path.of(dataFile).toAbsolutePath().normalize();
